@@ -20,7 +20,7 @@ class UndoNoRedoRecovery:
     def RM_Read(self, T, data_item):
         log = f'read_item, T{T.id}, {data_item}, {self.db.data[data_item]}'
         self.db.att_cache_log(log)
-        self.db.att_disk_log(log)
+        # self.db.att_disk_log(log)
         return log
 
     def RM_Write(self, T, data_item, new_value):
@@ -28,7 +28,7 @@ class UndoNoRedoRecovery:
         self.db.data[data_item] = new_value
         log = f'write_item, T{T.id}, {data_item}, {old_value}, {new_value}'
         self.db.att_cache_log(log)
-        self.db.att_disk_log(log)
+        # self.db.att_disk_log(log)
         return log
     
     def RM_Commit(self, T):
@@ -37,6 +37,11 @@ class UndoNoRedoRecovery:
         self.db.add_consolidated_transactions_list(T)
         self.db.remove_active_transactions_list(T)
         return log
+    
+    def RM_Checkpoint(self, new_item):
+        self.db.att_disk_log(new_item)
+        
+        
     
     def RM_Abort(self, T):
         logs = []

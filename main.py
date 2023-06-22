@@ -56,7 +56,7 @@ class RecoveryInterface(QMainWindow):
         # Área de texto para exibir o log de memória
         self.log_memory_label = QLabel("Log da Cache", self)
         self.log_memory_label.move(420,0)
-        # self.log_memory_label.setAlignment(Qt.AlignCenter)
+        self.log_memory_label.setAlignment(Qt.AlignCenter)
         self.log_memory_display = QTextEdit(self)
         self.log_memory_display.setReadOnly(True)
 
@@ -107,7 +107,7 @@ class RecoveryInterface(QMainWindow):
         layout.addWidget(self.btn_commit, 13, 0)
         layout.addWidget(self.btn_finish_transaction, 14, 0)
         layout.addWidget(self.btn_recover, 15, 0)
-        layout.addWidget(self.log_memory_label, 0, 1, 4, 1)
+        layout.addWidget(self.log_memory_label, 0, 1)
         layout.addWidget(self.log_memory_display, 1, 1, 4, 1)
         layout.addWidget(self.log_disk_label, 6, 1)
         layout.addWidget(self.log_disk_display, 7, 1, 4, 1)
@@ -158,7 +158,7 @@ class RecoveryInterface(QMainWindow):
 
         if self.recovery_mode.name == 'UndoNoRedoRecovery':
             self.log_memory_display.append(log)
-            self.log_disk_display.append(log)
+            # self.log_disk_display.append(log)
         if self.recovery_mode.name == 'UndoRedoRecovery':
             self.log_memory_display.append(log)
 
@@ -174,7 +174,7 @@ class RecoveryInterface(QMainWindow):
 
         if self.recovery_mode.name == 'UndoNoRedoRecovery':
             self.log_memory_display.append(log)
-            self.log_disk_display.append(log)
+            # self.log_disk_display.append(log)
             self.update_db_table(self.dict_dropdown[data_item], new_value)
         if self.recovery_mode.name == 'UndoRedoRecovery':
             self.log_memory_display.append(log)
@@ -209,12 +209,35 @@ class RecoveryInterface(QMainWindow):
     def perform_fail(self):
         self.log_memory_display.clear()
 
+    def difference_between_logs(self):
+        new_cache_list = []
+        new_disk_list = []
+        for cache in self.db.cache_log:
+            if cache not in new_cache_list:
+                new_cache_list.append(cache)
+        for disk in self.db.disk_log:
+            if disk not in new_disk_list:
+                new_disk_list.append(disk)
+                
+        return new_cache_list[len(new_disk_list):]
+        
+        
     def perform_checkpoint(self):
         active_transactions = [f'T{t.id}' for t in self.db.active_transactions]
         self.log_disk_display.append(f'checkpoint, {active_transactions}')
-        add_to_disk = set(self.db.cache_log) - set(self.db.disk_log)
-        if len(list(add_to_disk)) > 0:
-            self.db.disk_log.extend(list(add_to_disk))
+        # add_to_disk = set(self.db.cache_log) - set(self.db.disk_log)
+        print(self.db.cache_log)
+        print(self.db.disk_log)
+        add_to_disk = self.difference_between_logs()
+        if add_to_disk:
+            print(add_to_disk)
+            self.db.get_checkpoint(self.db.active_transactions)
+            
+            for item in add_to_disk:
+                self.log_disk_display.append(item)
+            # print(add_to_disk)
+            
+            # self.db.disk_log.extend(list(add_to_disk))
             # self.log_memory_display.clear()
 
     def perform_abort(self):

@@ -18,14 +18,20 @@ class Database:
         self.consolidated_transactions = []
         self.aborted_transactions = []
     
-    def get_checkpoint(self, *T):
-        ids = ['T'+tr.id for tr in T]
+    def get_checkpoint(self, T):
+        ids = [f'T{tr.id}' for tr in T]
         self.att_cache_log(f'checkpoint, {ids}')
         self.sync_cache_and_disk_log()
 
     def sync_cache_and_disk_log(self):
         idx = [idx for idx, element in enumerate(self.cache_log) if element.startswith('checkpoint')]
-        self.disk_log.extend(self.cache_log[idx[0]:])
+        for i in range(len(idx)):
+            if i == 0:
+                self.disk_log.extend(self.cache_log[:idx[0]+1])
+            else:
+                self.disk_log.extend(self.cache_log[idx[i-1]+1:idx[i]+1])
+                
+                    
     
     def att_cache_log(self, status):
         self.cache_log.append(status)
@@ -34,6 +40,7 @@ class Database:
         self.cache_log = []
 
     def att_disk_log(self, status):
+        print(status)
         self.disk_log.append(status)
 
     def add_active_transactions_list(self, T):
