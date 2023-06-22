@@ -16,18 +16,20 @@ class UndoNoRedoRecovery:
 
     def __init__(self, db):
         self.db = db
+        self.db_cache = db
 
     def RM_Read(self, T, data_item):
-        log = f'read_item, T{T.id}, {data_item}, {self.db.data[data_item]}'
+        log = f'read_item, T{T.id}, {data_item}, {self.db_cache.data[data_item]}'
         self.db.att_cache_log(log)
         # self.db.att_disk_log(log)
         return log
 
     def RM_Write(self, T, data_item, new_value):
-        old_value = self.db.data[data_item]
-        self.db.data[data_item] = new_value
+        old_value = self.db_cache.data[data_item]
         log = f'write_item, T{T.id}, {data_item}, {old_value}, {new_value}'
         self.db.att_cache_log(log)
+        
+        self.db_cache.data[data_item] = new_value
         # self.db.att_disk_log(log)
         return log
     
@@ -38,8 +40,9 @@ class UndoNoRedoRecovery:
         self.db.remove_active_transactions_list(T)
         return log
     
-    def RM_Checkpoint(self, new_item):
-        self.db.att_disk_log(new_item)
+    def RM_Checkpoint(self, data_item, new_value):
+        # self.db.data[data_item] = new_value
+        self.db = self.db_cache
         
         
     
