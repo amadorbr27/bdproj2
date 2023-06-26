@@ -161,7 +161,6 @@ class RecoveryInterface(QMainWindow):
 
         if self.recovery_mode.name == 'UndoNoRedoRecovery':
             self.log_memory_display.append(log)
-            # self.log_disk_display.append(log)
         if self.recovery_mode.name == 'UndoRedoRecovery':
             self.log_memory_display.append(log)
 
@@ -182,7 +181,7 @@ class RecoveryInterface(QMainWindow):
             self.log_memory_display.append(log)
 
         self.transaction.steps.append('write_item')
-
+        self.perform_checkpoint()
         time.sleep(0.1)
         # self.radio_read.setEnabled(False)
         self.btn_commit.setEnabled(True)
@@ -229,7 +228,7 @@ class RecoveryInterface(QMainWindow):
         
     def perform_checkpoint(self):
         active_transactions = [f'T{t.id}' for t in self.db.active_transactions]
-        self.log_disk_display.append(f'checkpoint, {active_transactions}')
+        self.log_disk_display.append(', '.join(active_transactions))
         if add_to_disk := self.difference_between_logs():
             self.db.get_checkpoint(self.db.active_transactions)
             for item in add_to_disk:
